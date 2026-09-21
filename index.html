@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Pablo</title>
+<style>
+  :root{
+    --paper: #EDEAE1;
+    --paper-dim: #E3DFD3;
+    --ink: #1F2A24;
+    --ink-soft: #55635A;
+    --accent: #3D6B5C;
+    --accent-light: #B9CFC4;
+    --amber: #C1783D;
+    --line: #C7C0AF;
+    --card: #F6F4EC;
+    --danger: #A8462F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    -webkit-font-smoothing:antialiased;
+    padding: 18px 14px 60px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .mono{ font-family: 'SF Mono', 'Courier New', monospace; letter-spacing:0.2px; }
+
+  header.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  header.top h1{
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 700;
+  }
+  header.top .week-badge{
+    font-family: 'SF Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  nav.days{
+    display:flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  nav.days button{
+    flex:1;
+    background:none;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    padding: 9px 4px;
+    font-family: Georgia, serif;
+    font-size: 0.82rem;
+    cursor:pointer;
+    border-radius: 2px;
+  }
+  nav.days button.active{
+    background: var(--ink);
+    color: var(--paper);
+  }
+  nav.days button .sub{
+    display:block;
+    font-size:0.68rem;
+    color: inherit;
+    opacity:0.7;
+    font-family:'SF Mono',monospace;
+  }
+
+  section.day{ display:none; }
+  section.day.active{ display:block; }
+
+  .day-title{
+    font-size:1.05rem;
+    margin: 4px 0 2px;
+  }
+  .day-note{
+    color: var(--ink-soft);
+    font-size:0.85rem;
+    margin: 0 0 14px;
+    line-height:1.4;
+  }
+
+  .exercise{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow:hidden;
+  }
+  .exercise-head{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    padding: 12px 14px 8px;
+  }
+  .exercise-icon{
+    width:56px;
+    height:56px;
+    flex-shrink:0;
+  }
+  .exercise-icon svg{ width:100%; height:100%; display:block; }
+  .exercise-name{
+    font-size:1rem;
+    font-weight:700;
+    margin:0 0 2px;
+  }
+  .exercise-target{
+    font-size:0.78rem;
+    color: var(--ink-soft);
+    font-family:'SF Mono',monospace;
+  }
+  .exercise-body{
+    padding: 0 14px 14px;
+  }
+  .how-to{
+    font-size:0.82rem;
+    color: var(--ink-soft);
+    line-height:1.45;
+    margin: 4px 0 10px;
+    border-left: 2px solid var(--accent-light);
+    padding-left: 9px;
+  }
+
+  .video-link{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.8rem;
+    color: var(--accent);
+    text-decoration:none;
+    border: 1px solid var(--accent);
+    padding: 8px 10px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    width:fit-content;
+  }
+  .video-link:active{ opacity:0.7; }
+  .track-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .track-row label{
+    font-size:0.75rem;
+    color: var(--ink-soft);
+    width:78px;
+    flex-shrink:0;
+  }
+  .track-row input[type=number]{
+    flex:1;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 7px 8px;
+    font-family:'SF Mono',monospace;
+    font-size:0.95rem;
+    border-radius:2px;
+    color:var(--ink);
+    width: 100%;
+  }
+  .feel-row{
+    display:flex;
+    gap:6px;
+    margin: 6px 0 10px;
+  }
+  .feel-btn{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--paper);
+    padding:6px 2px;
+    font-size:0.72rem;
+    border-radius:2px;
+    cursor:pointer;
+    color: var(--ink-soft);
+  }
+  .feel-btn.selected{
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .prev-weight{
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .suggestion{
+    font-size: 0.8rem;
+    background: var(--accent-light);
+    color: var(--ink);
+    padding: 7px 9px;
+    border-radius: 2px;
+    margin-top: 6px;
+    display:none;
+  }
+  .suggestion.show{ display:block; }
+
+  .run-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:16px;
+    margin-bottom:12px;
+  }
+  .run-plan{
+    display:flex;
+    gap:10px;
+    margin: 10px 0 14px;
+  }
+  .run-plan .box{
+    flex:1;
+    text-align:center;
+    border: 1px solid var(--line);
+    padding: 12px 6px;
+    border-radius:2px;
+    background: var(--paper);
+  }
+  .run-plan .box .num{
+    font-family:'SF Mono',monospace;
+    font-size:1.5rem;
+    font-weight:700;
+    color: var(--accent);
+    display:block;
+  }
+  .run-plan .box .lbl{
+    font-size:0.7rem;
+    color: var(--ink-soft);
+  }
+  .run-diagram{
+    width:100%;
+    height:70px;
+    margin: 6px 0 12px;
+  }
+
+  .save-btn{
+    width:100%;
+    background: var(--ink);
+    color: var(--paper);
+    border:none;
+    padding: 12px;
+    font-family: Georgia, serif;
+    font-size: 0.95rem;
+    border-radius: 3px;
+    cursor:pointer;
+    margin-top: 4px;
+  }
+  .save-btn:active{ opacity:0.85; }
+  .save-btn.done{
+    background: var(--accent);
+  }
+
+  .history{
+    margin-top: 22px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+  .history h3{
+    font-size:0.85rem;
+    color: var(--ink-soft);
+    margin: 0 0 8px;
+    font-weight:normal;
+    font-style:italic;
+  }
+  .history-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.78rem;
+    color: var(--ink-soft);
+    padding: 4px 0;
+    border-bottom: 1px dotted var(--line);
+    font-family:'SF Mono',monospace;
+  }
+
+  .week-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 4px;
+  }
+  .week-nav button{
+    background:none;
+    border:1px solid var(--line);
+    color: var(--ink);
+    width:30px;
+    height:30px;
+    border-radius:2px;
+    font-size:1rem;
+    cursor:pointer;
+  }
+  .week-nav button:disabled{ opacity:0.3; cursor:default; }
+
+  .toast{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%) translateY(10px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-size:0.85rem;
+    opacity:0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .reset-link{
+    display:block;
+    text-align:center;
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    margin-top: 24px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+
+  .summary-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 3px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .summary-card .headline{
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin: 0 0 4px;
+  }
+  .summary-card .detail{
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .summary-dots{
+    display:flex;
+    gap:6px;
+    margin: 8px 0 2px;
+  }
+  .summary-dots span{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--line);
+    display:inline-block;
+  }
+  .summary-dots span.on{ background: var(--accent); }
+
+  .confirm-card{
+    background: var(--card);
+    border: 1px solid var(--amber);
+    border-left: 4px solid var(--amber);
+    border-radius: 3px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .confirm-card p{
+    font-size: 0.82rem;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .confirm-actions{
+    display:flex;
+    gap:8px;
+  }
+  .confirm-actions button{
+    flex:1;
+    border: 1px solid var(--ink);
+    background: none;
+    color: var(--ink);
+    padding: 8px;
+    font-family: Georgia, serif;
+    font-size: 0.82rem;
+    border-radius: 2px;
+    cursor:pointer;
+  }
+  .confirm-actions button.primary{
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .confirm-edit-row{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
+  .confirm-edit-row input{
+    flex:1;
+    border: 1px solid var(--line);
+    padding: 7px 8px;
+    border-radius:2px;
+    font-family: Georgia, serif;
+  }
+
+  .stats-grid{
+    display:flex;
+    gap:10px;
+    margin: 10px 0 16px;
+  }
+  .stats-grid .box{
+    flex:1;
+    text-align:center;
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding: 10px 4px;
+    background: var(--card);
+  }
+  .stats-grid .box .num{
+    font-family:'SF Mono',monospace;
+    font-size:1.3rem;
+    font-weight:700;
+    display:block;
+    color: var(--accent);
+  }
+  .stats-grid .box .lbl{
+    font-size:0.65rem;
+    color: var(--ink-soft);
+  }
+
+  .week-group{
+    margin-bottom: 14px;
+  }
+  .week-group .wk-label{
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    font-style:italic;
+    margin: 0 0 6px;
+  }
+  .log-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius:2px;
+    background: var(--card);
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+  }
+  .log-row .lr-left{ display:flex; flex-direction:column; }
+  .log-row .lr-date{ font-family:'SF Mono',monospace; font-size:0.7rem; color:var(--ink-soft); }
+  .log-row .lr-status{
+    font-size:0.72rem;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-family:'SF Mono',monospace;
+    white-space:nowrap;
+  }
+  .lr-status.completado{ background: var(--accent-light); color: var(--ink); }
+  .lr-status.perdido{ background: #E8CFC5; color: var(--danger); }
+  .lr-status.hoy{ background: var(--amber); color: white; }
+  .lr-status.proximo{ background: var(--paper-dim); color: var(--ink-soft); }
+  .lr-status.pausa{ background: var(--paper-dim); color: var(--ink-soft); font-style:italic; }
+
+  .pause-entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border: 1px solid var(--line);
+    border-radius:2px;
+    padding: 7px 10px;
+    margin-bottom: 6px;
+    background: var(--paper);
+    font-size: 0.78rem;
+  }
+
+  .export-btn{
+    width:100%;
+    background: none;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    padding: 11px;
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+    border-radius: 3px;
+    cursor:pointer;
+    margin-bottom: 18px;
+  }
+
+  .measure-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .measure-card h3{
+    font-size: 0.9rem;
+    margin: 0 0 10px;
+  }
+  .measure-row{
+    display:flex;
+    gap:8px;
+    margin-bottom: 8px;
+  }
+  .measure-row input, .measure-row textarea{
+    flex:1;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 7px 8px;
+    font-family: Georgia, serif;
+    font-size: 0.85rem;
+    border-radius:2px;
+    color:var(--ink);
+    width:100%;
+  }
+  .measure-row textarea{ resize:vertical; min-height:40px; }
+  .measure-label{
+    font-size:0.7rem;
+    color: var(--ink-soft);
+    display:block;
+    margin-bottom:3px;
+  }
+  .measure-col{ flex:1; }
+  .measure-entry{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    border: 1px solid var(--line);
+    border-radius:2px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: var(--paper);
+  }
+  .measure-entry img{
+    width:52px; height:52px; object-fit:cover; border-radius:2px; flex-shrink:0;
+  }
+  .measure-entry .me-info{ flex:1; font-size:0.78rem; }
+  .measure-entry .me-date{ font-family:'SF Mono',monospace; color:var(--ink-soft); font-size:0.7rem; }
+  .measure-entry .me-del{
+    background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Bitácora</h1>
+  <div class="week-badge" id="weekBadge">cargando…</div>
+</header>
+
+<div class="week-nav">
+  <button id="prevWeek">‹</button>
+  <span class="mono" id="weekLabel" style="font-size:0.85rem;color:var(--ink-soft);">Semana 1</span>
+  <button id="nextWeek">›</button>
+</div>
+
+<div id="weekConfirm"></div>
+
+<div id="weekSummary"></div>
+
+<nav class="days">
+  <button class="day-btn active" data-day="A">Lunes<span class="sub" id="subA">Full body A</span></button>
+  <button class="day-btn" data-day="B">Miércoles<span class="sub" id="subB">Full body B</span></button>
+  <button class="day-btn" data-day="C">Viernes<span class="sub" id="subC">Correr</span></button>
+  <button class="day-btn" data-day="H">Historial<span class="sub">Progreso</span></button>
+</nav>
+
+<section class="day active" id="day-A">
+  <p class="day-title">Día A — Full body</p>
+  <p class="day-note">3 series de 10–12 reps por ejercicio. Descansa 60–90s entre series. Si completas las 3 series con buena forma y te sintió "fácil" o "normal", la próxima semana te sugiero subir el peso.</p>
+  <div id="exercises-A"></div>
+</section>
+
+<section class="day" id="day-B">
+  <p class="day-title">Día B — Full body</p>
+  <p class="day-note">Misma lógica: 3x10–12, 60–90s de descanso. Alternar A/B evita que se vuelva monótono y trabaja los músculos desde otro ángulo.</p>
+  <div id="exercises-B"></div>
+</section>
+
+<section class="day" id="day-C">
+  <p class="day-title">Día C — Correr (método caminar–trotar)</p>
+  <p class="day-note">Meta final: trotar 25–30 min continuos para completar un 5K cómodo junto a tu esposa.</p>
+  <div id="run-container"></div>
+</section>
+
+<section class="day" id="day-H">
+  <p class="day-title">Historial y estadísticas</p>
+  <p class="day-note">Cada semana se cuentan de lunes a viernes según la fecha real. Si un día pasa sin marcarse como hecho, aquí queda registrado como perdido.</p>
+  <div class="measure-card" style="margin-bottom:14px;">
+    <h3>⚙️ Fecha de inicio</h3>
+    <p class="detail" style="color:var(--ink-soft);font-size:0.78rem;margin:0 0 8px;" id="anchorInfo"></p>
+    <div class="measure-row">
+      <div class="measure-col">
+        <span class="measure-label">Tu primer lunes de entrenamiento</span>
+        <input type="date" id="anchorDate">
+      </div>
+    </div>
+    <button class="save-btn" id="anchorSave">Establecer fecha de inicio</button>
+  </div>
+
+  <div class="measure-card" style="margin-bottom:14px;">
+    <h3>🏖️ Pausas / vacaciones</h3>
+    <p class="detail" style="color:var(--ink-soft);font-size:0.78rem;margin:0 0 8px;">Los días dentro de una pausa no cuentan como "perdidos" en tus estadísticas.</p>
+    <div class="measure-row">
+      <div class="measure-col">
+        <span class="measure-label">Desde</span>
+        <input type="date" id="pauseStart">
+      </div>
+      <div class="measure-col">
+        <span class="measure-label">Hasta</span>
+        <input type="date" id="pauseEnd">
+      </div>
+    </div>
+    <div class="measure-row">
+      <input type="text" id="pauseNote" placeholder="Nota (ej. Vacaciones noviembre)">
+    </div>
+    <button class="save-btn" id="pauseSave">Agregar pausa</button>
+    <div id="pauseList" style="margin-top:10px;"></div>
+  </div>
+
+  <button class="export-btn" id="exportBtn">⬇ Descargar respaldo (.json)</button>
+  <div id="statsSummary"></div>
+  <div id="historialList"></div>
+
+  <div class="measure-card">
+    <h3>📏 Medidas y fotos (opcional)</h3>
+    <div class="measure-row">
+      <div class="measure-col">
+        <span class="measure-label">Fecha</span>
+        <input type="date" id="mDate">
+      </div>
+      <div class="measure-col">
+        <span class="measure-label">Cintura (cm)</span>
+        <input type="number" step="0.5" id="mWaist">
+      </div>
+      <div class="measure-col">
+        <span class="measure-label">Brazo (cm)</span>
+        <input type="number" step="0.5" id="mArm">
+      </div>
+    </div>
+    <div class="measure-row">
+      <div class="measure-col">
+        <span class="measure-label">Peso corporal (kg)</span>
+        <input type="number" step="0.1" id="mWeight">
+      </div>
+      <div class="measure-col">
+        <span class="measure-label">Foto (opcional, &lt;2MB)</span>
+        <input type="file" accept="image/*" id="mPhoto">
+      </div>
+    </div>
+    <div class="measure-row">
+      <textarea id="mNotes" placeholder="Notas — cómo te queda la ropa, cómo te sientes..."></textarea>
+    </div>
+    <button class="save-btn" id="mSave">Agregar registro</button>
+    <div id="measureList" style="margin-top:12px;"></div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<span class="reset-link" id="resetLink">Reiniciar toda la bitácora</span>
+
+<script>
+// ---------- DATA ----------
+function ytSearch(q){ return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q); }
+
+const EXERCISES = {
+  A: [
+    { id:'sentadilla', name:'Sentadilla', target:'3 x 10-12', step:2.5, equipment:'Mancuerna o barra',
+      how:'Pies al ancho de hombros. Baja como si fueras a sentarte, rodillas siguiendo la dirección de los pies, espalda recta. Sube empujando con los talones.',
+      icon: iconSquat(), video: ytSearch('sentadilla goblet mancuerna técnica correcta') },
+    { id:'press-pecho', name:'Press de pecho', target:'3 x 10-12', step:2, equipment:'Mancuernas + banca',
+      how:'Acostado en banca, mancuernas a la altura del pecho. Empuja hacia arriba sin bloquear el codo del todo, baja controlado.',
+      icon: iconChestPress(), video: ytSearch('press de pecho con mancuernas técnica correcta') },
+    { id:'remo', name:'Remo con mancuerna', target:'3 x 10-12 por lado', step:2, equipment:'Mancuerna + banco',
+      how:'Apoya rodilla y mano en banco, espalda paralela al piso. Jala la mancuerna hacia la cadera apretando el omóplato.',
+      icon: iconRow(), video: ytSearch('remo con mancuerna a una mano técnica correcta') },
+    { id:'press-hombro', name:'Press de hombro', target:'3 x 10-12', step:1, equipment:'Mancuernas',
+      how:'Sentado o de pie, mancuernas a la altura de los hombros. Empuja hacia arriba hasta casi extender el codo, baja controlado.',
+      icon: iconShoulderPress(), video: ytSearch('press militar de hombro con mancuernas técnica') },
+    { id:'plancha', name:'Plancha', target:'3 x 30-45 seg', step:5, isTime:true, equipment:'Peso corporal',
+      how:'Antebrazos y puntas de pie en el piso, cuerpo en línea recta de cabeza a talón. Aprieta abdomen y glúteos, no dejes caer la cadera.',
+      icon: iconPlank(), video: ytSearch('plancha abdominal técnica correcta') },
+  ],
+  B: [
+    { id:'peso-muerto', name:'Peso muerto rumano', target:'3 x 10-12', step:2.5, equipment:'Mancuernas',
+      how:'Mancuernas al frente de los muslos, rodillas semi-flexionadas fijas. Baja el torso empujando cadera hacia atrás, siente el jalón en isquiotibiales, sube apretando glúteo.',
+      icon: iconRDL(), video: ytSearch('peso muerto rumano con mancuernas técnica correcta') },
+    { id:'press-inclinado', name:'Press inclinado / fondos', target:'3 x 10-12', step:2, equipment:'Mancuernas + banco inclinado',
+      how:'Banco a 30-45°, mancuernas a la altura del pecho, empuja hacia arriba y ligeramente hacia adentro. Si usas fondos en banco: manos atrás en el borde, baja doblando codos a 90° y sube.',
+      icon: iconInclinePress(), video: ytSearch('press inclinado con mancuernas técnica correcta') },
+    { id:'jalon', name:'Jalón al pecho', target:'3 x 10-12', step:2, equipment:'Polea alta o banda',
+      how:'Agarre un poco más ancho que hombros, jala la barra o banda hacia la parte alta del pecho, apretando la espalda. Sube controlado.',
+      icon: iconLatPulldown(), video: ytSearch('jalón al pecho en polea técnica correcta') },
+    { id:'biceps-triceps', name:'Curl de bíceps + extensión tríceps', target:'3 x 12 c/u', step:1, equipment:'Mancuernas',
+      how:'Curl: codos pegados al torso, sube la mancuerna sin balancear el cuerpo. Tríceps: mancuerna detrás de la cabeza con ambas manos, extiende el brazo hacia arriba.',
+      icon: iconBicepsTriceps(), video: ytSearch('curl de bíceps y extensión de tríceps con mancuernas técnica') },
+    { id:'core-twist', name:'Russian twists', target:'3 x 20 (10 por lado)', step:1, equipment:'Peso corporal o mancuerna ligera',
+      how:'Sentado, torso inclinado hacia atrás ~45°, pies elevados o apoyados. Gira el torso llevando las manos (o un peso ligero) de un lado al otro.',
+      icon: iconTwist(), video: ytSearch('russian twist técnica correcta') },
+  ]
+};
+
+const RUN_PLAN_BASE = [
+  { run:1, walk:2, rounds:8 },
+  { run:1, walk:2, rounds:8 },
+  { run:2, walk:2, rounds:6 },
+  { run:3, walk:2, rounds:5 },
+  { run:5, walk:2, rounds:4 },
+  { run:8, walk:2, rounds:3 },
+  { run:12, walk:2, rounds:2 },
+  { run:20, walk:1, rounds:1 },
+  { run:28, walk:0, rounds:1 },
+];
+
+// ---------- STATE ----------
+let state = {
+  currentWeek: 1,
+  maxWeekReached: 1,
+  anchorMonday: null, // ISO date of Monday of week 1, set on first load
+  logs: {},   // logs["W1_A_sentadilla"] = {weight, feel, done}
+  runProgress: {}, // runProgress["W1"] = {runLevel, feel, done}
+  runLevel: 0, // index into RUN_PLAN_BASE, advances only when a week is marked "fácil/normal" done
+  measurements: [], // {date, waist, arm, weight, notes, photo}
+  pauses: [], // {start, end, note}
+  visitedWeeks: [1] // week numbers whose date has been confirmed by the user
+};
+
+function isPaused(dateISO){
+  return state.pauses.some(p => dateISO >= p.start && dateISO <= p.end);
+}
+
+// ---------- DATE HELPERS ----------
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function mondayOf(dateObj){
+  const day = dateObj.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  const mon = new Date(dateObj);
+  mon.setDate(dateObj.getDate() + diff);
+  return mon.toISOString().slice(0,10);
+}
+function addDaysISO(iso, n){
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0,10);
+}
+function fmtDate(iso){
+  const d = new Date(iso + 'T00:00:00');
+  return `${d.getDate()} ${MESES[d.getMonth()]}`;
+}
+function weekDates(weekNum){
+  const monday = addDaysISO(state.anchorMonday, (weekNum - 1) * 7);
+  return { A: monday, B: addDaysISO(monday, 2), C: addDaysISO(monday, 4) };
+}
+function currentCalendarWeekNum(){
+  const diffDays = Math.floor((new Date(todayISO()) - new Date(state.anchorMonday)) / 86400000);
+  return Math.floor(diffDays / 7) + 1;
+}
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem('gym-state');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = Object.assign(state, parsed);
+    }
+  }catch(e){ /* no state yet, use defaults */ }
+  if(!state.anchorMonday){
+    state.anchorMonday = mondayOf(new Date());
+  }
+  if(!state.measurements) state.measurements = [];
+  if(!state.pauses) state.pauses = [];
+  if(!state.visitedWeeks) state.visitedWeeks = [1];
+  const calWeek = currentCalendarWeekNum();
+  if(calWeek > state.maxWeekReached) state.maxWeekReached = calWeek;
+  saveState();
+  render();
+}
+
+async function saveState(){
+  try{
+    localStorage.setItem('gym-state', JSON.stringify(state));
+  }catch(e){ console.error('storage error', e); showToast('No se pudo guardar en este navegador'); }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+// ---------- ICONS (simple line-art SVGs) ----------
+function svgWrap(inner){
+  return `<svg viewBox="0 0 100 100" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+}
+function iconSquat(){
+  return svgWrap(`<circle cx="50" cy="18" r="8"/><path d="M50 26 L50 55 M50 55 L35 75 M50 55 L65 75 M38 40 L50 48 L62 40"/><path d="M32 78 L40 78 M60 78 L68 78"/>`);
+}
+function iconChestPress(){
+  return svgWrap(`<circle cx="50" cy="20" r="8"/><path d="M50 28 L50 65 M50 65 L40 90 M50 65 L60 90"/><path d="M30 40 L50 40 L70 40" stroke-width="4"/><path d="M28 34 L28 46 M72 34 L72 46"/>`);
+}
+function iconRow(){
+  return svgWrap(`<circle cx="30" cy="30" r="7"/><path d="M30 37 L30 55 L20 85 M30 55 L45 80"/><path d="M30 55 L70 45"/><path d="M70 40 L70 50"/>`);
+}
+function iconShoulderPress(){
+  return svgWrap(`<circle cx="50" cy="18" r="8"/><path d="M50 26 L50 60 L40 90 M50 60 L60 90"/><path d="M50 32 L30 15 M50 32 L70 15"/><path d="M27 10 L33 20 M67 10 L73 20"/>`);
+}
+function iconPlank(){
+  return svgWrap(`<circle cx="20" cy="55" r="7"/><path d="M27 55 L80 45 M27 62 L20 85 M80 45 L88 65"/>`);
+}
+function iconRDL(){
+  return svgWrap(`<circle cx="45" cy="20" r="8"/><path d="M45 28 L55 55 M55 55 L45 85 M55 55 L70 80"/><path d="M55 55 L38 60 L38 78"/>`);
+}
+function iconInclinePress(){
+  return svgWrap(`<path d="M15 70 L60 45" stroke-width="4"/><circle cx="52" cy="35" r="7"/><path d="M52 42 L60 62"/><path d="M40 35 L55 30 L70 35"/><path d="M38 30 L42 40 M72 30 L68 40"/>`);
+}
+function iconLatPulldown(){
+  return svgWrap(`<circle cx="50" cy="22" r="8"/><path d="M50 30 L50 65 L40 90 M50 65 L60 90"/><path d="M25 15 L75 15"/><path d="M35 22 L50 40 L65 22"/>`);
+}
+function iconBicepsTriceps(){
+  return svgWrap(`<circle cx="50" cy="18" r="8"/><path d="M50 26 L50 60 L40 90 M50 60 L60 90"/><path d="M50 32 L32 45 L38 60" /><path d="M62 32 L68 20"/>`);
+}
+function iconTwist(){
+  return svgWrap(`<circle cx="45" cy="30" r="7"/><path d="M45 37 L50 65 L38 85 M50 65 L62 85"/><path d="M50 45 L70 38 M50 45 L32 55"/>`);
+}
+function iconRunWalk(){
+  return `<svg viewBox="0 0 300 60" width="100%" height="100%" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round">
+    <circle cx="20" cy="15" r="6" fill="var(--accent)" stroke="none"/><path d="M20 21 L26 38 L18 55 M26 38 L38 50 M20 21 L8 30"/>
+    <circle cx="70" cy="15" r="6" fill="var(--ink-soft)" stroke="none"/><path d="M70 21 L70 45 L60 55 M70 45 L80 55 M70 25 L58 20 M70 25 L82 20" stroke="var(--ink-soft)"/>
+  </svg>`;
+}
+
+// ---------- RENDER ----------
+function keyFor(day, exId){ return `W${state.currentWeek}_${day}_${exId}`; }
+function prevKeyFor(day, exId){ return `W${state.currentWeek-1}_${day}_${exId}`; }
+
+function renderExercises(day){
+  const container = document.getElementById('exercises-' + day);
+  container.innerHTML = '';
+  EXERCISES[day].forEach(ex => {
+    const key = keyFor(day, ex.id);
+    const prevKey = prevKeyFor(day, ex.id);
+    const log = state.logs[key] || {};
+    const prevLog = state.logs[prevKey];
+
+    const div = document.createElement('div');
+    div.className = 'exercise';
+    const unit = ex.isTime ? 'seg' : 'kg';
+    div.innerHTML = `
+      <div class="exercise-head">
+        <div class="exercise-icon">${ex.icon}</div>
+        <div>
+          <p class="exercise-name">${ex.name}</p>
+          <p class="exercise-target">${ex.target}</p>
+        </div>
+      </div>
+      <div class="exercise-body">
+        <p class="how-to">${ex.how}</p>
+        <a class="video-link" href="${ex.video}" target="_blank" rel="noopener">▶ Ver ejemplos en YouTube</a>
+        ${prevLog ? `<p class="prev-weight">Semana pasada: ${prevLog.weight ?? '—'} ${unit} · sensación: ${feelLabel(prevLog.feel)}</p>` : ''}
+        <div class="track-row">
+          <label>${ex.isTime ? 'Tiempo (seg)' : 'Peso (kg)'}</label>
+          <input type="number" step="${ex.isTime ? 5 : 0.5}" inputmode="decimal" id="${key}_weight" value="${log.weight ?? ''}" placeholder="${prevLog ? prevLog.weight : '0'}">
+        </div>
+        <div class="feel-row" id="${key}_feelrow">
+          ${['facil','normal','dificil'].map(f => `<button type="button" class="feel-btn ${log.feel===f?'selected':''}" data-feel="${f}">${feelLabel(f)}</button>`).join('')}
+        </div>
+        <button class="save-btn ${log.done ? 'done' : ''}" id="${key}_save">${log.done ? '✓ Guardado' : 'Marcar como hecho'}</button>
+        <div class="suggestion ${log.done ? 'show' : ''}" id="${key}_suggestion">${suggestionText(ex, log)}</div>
+      </div>
+    `;
+    container.appendChild(div);
+
+    // feel buttons
+    div.querySelectorAll(`#${CSS.escape(key+'_feelrow')} .feel-btn`).forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        div.querySelectorAll(`#${CSS.escape(key+'_feelrow')} .feel-btn`).forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if(!state.logs[key]) state.logs[key] = {};
+        state.logs[key].feel = btn.dataset.feel;
+      });
+    });
+
+    // save button
+    div.querySelector(`#${CSS.escape(key+'_save')}`).addEventListener('click', ()=>{
+      const weightInput = div.querySelector(`#${CSS.escape(key+'_weight')}`);
+      const weightVal = parseFloat(weightInput.value);
+      if(isNaN(weightVal)){
+        showToast('Pon el peso/tiempo antes de guardar');
+        return;
+      }
+      const feel = (state.logs[key] && state.logs[key].feel) || 'normal';
+      state.logs[key] = { weight: weightVal, feel: feel, done: true };
+      saveState();
+      renderExercises(day);
+      renderSummary();
+      showToast(ex.name + ' guardado');
+    });
+  });
+}
+
+function feelLabel(f){
+  return f === 'facil' ? 'Fácil' : f === 'dificil' ? 'Difícil' : 'Normal';
+}
+
+function suggestionText(ex, log){
+  if(!log.done) return '';
+  if(log.feel === 'dificil'){
+    return `La próxima semana, mantén ${log.weight}${ex.isTime?' seg':' kg'} — consolida antes de subir.`;
+  }
+  const next = ex.isTime ? log.weight + ex.step : Math.round((log.weight + ex.step)*2)/2;
+  return `Buen trabajo. La próxima semana prueba con ${next}${ex.isTime?' seg':' kg'}.`;
+}
+
+function renderRun(){
+  const container = document.getElementById('run-container');
+  const levelIdx = Math.min(state.runLevel, RUN_PLAN_BASE.length - 1);
+  const plan = RUN_PLAN_BASE[levelIdx];
+  const key = `W${state.currentWeek}_run`;
+  const log = state.runProgress[key] || {};
+
+  container.innerHTML = `
+    <div class="run-card">
+      <p class="day-note" style="margin-top:0;">Nivel actual de tu progresión (no depende de la semana del calendario, sino de cómo te ha ido corriendo):</p>
+      <div class="run-diagram">${iconRunWalk()}</div>
+      <div class="run-plan">
+        <div class="box"><span class="num">${plan.run}</span><span class="lbl">min trote</span></div>
+        <div class="box"><span class="num">${plan.walk}</span><span class="lbl">min caminata</span></div>
+        <div class="box"><span class="num">${plan.rounds}</span><span class="lbl">rondas</span></div>
+      </div>
+      <p class="how-to">Trota ${plan.run} min a paso cómodo (deberías poder hablar), camina ${plan.walk} min para recuperar, repite ${plan.rounds} veces. ${plan.walk===0 ? 'En este nivel ya trotas continuo — ¡casi listo para el 5K!' : ''}</p>
+      <a class="video-link" href="${ytSearch('cómo empezar a correr método caminar trotar principiantes')}" target="_blank" rel="noopener">▶ Ver ejemplos en YouTube</a>
+      ${log.done ? `<p class="prev-weight">Ya registraste esta semana: sensación ${feelLabel(log.feel)}</p>` : ''}
+      <div class="feel-row" id="run_feelrow">
+        ${['facil','normal','dificil'].map(f => `<button type="button" class="feel-btn ${log.feel===f?'selected':''}" data-feel="${f}">${feelLabel(f)}</button>`).join('')}
+      </div>
+      <button class="save-btn ${log.done ? 'done' : ''}" id="run_save">${log.done ? '✓ Guardado' : 'Marcar como hecho'}</button>
+      <div class="suggestion ${log.done ? 'show' : ''}" id="run_suggestion">${runSuggestionText(log, levelIdx)}</div>
+    </div>
+  `;
+
+  container.querySelectorAll('#run_feelrow .feel-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      container.querySelectorAll('#run_feelrow .feel-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      if(!state.runProgress[key]) state.runProgress[key] = {};
+      state.runProgress[key].feel = btn.dataset.feel;
+    });
+  });
+
+  container.querySelector('#run_save').addEventListener('click', ()=>{
+    const feel = (state.runProgress[key] && state.runProgress[key].feel) || 'normal';
+    state.runProgress[key] = { feel, done: true, levelAtLog: levelIdx };
+    if(feel !== 'dificil' && state.runLevel === levelIdx){
+      state.runLevel = Math.min(state.runLevel + 1, RUN_PLAN_BASE.length - 1);
+    }
+    saveState();
+    renderRun();
+    renderSummary();
+    showToast('Carrera guardada');
+  });
+}
+
+function runSuggestionText(log, levelIdx){
+  if(!log.done) return '';
+  if(log.feel === 'dificil'){
+    return 'La próxima vez repite este mismo nivel — sin prisa, la constancia importa más que avanzar rápido.';
+  }
+  if(levelIdx >= RUN_PLAN_BASE.length - 1){
+    return '¡Ya estás en trote continuo de ~28 min! Estás listo para el 5K junto a tu esposa.';
+  }
+  const next = RUN_PLAN_BASE[levelIdx + 1];
+  return `Bien hecho. La próxima vez subes a: ${next.run} min trote / ${next.walk} min caminata x ${next.rounds}.`;
+}
+
+function updateWeekUI(){
+  document.getElementById('weekBadge').textContent = `Semana ${state.currentWeek}`;
+  document.getElementById('weekLabel').textContent = `Semana ${state.currentWeek}`;
+  document.getElementById('prevWeek').disabled = state.currentWeek <= 1;
+  document.getElementById('nextWeek').disabled = false;
+}
+
+function render(){
+  renderExercises('A');
+  renderExercises('B');
+  renderRun();
+  renderSummary();
+  renderDayDates();
+  renderWeekConfirm();
+  renderAnchorInfo();
+  renderPauses();
+  renderHistorial();
+  renderMeasurements();
+  updateWeekUI();
+}
+
+function renderWeekConfirm(){
+  const el = document.getElementById('weekConfirm');
+  const w = state.currentWeek;
+  if(state.visitedWeeks.includes(w)){
+    el.innerHTML = '';
+    return;
+  }
+  const d = weekDates(w);
+  el.innerHTML = `
+    <div class="confirm-card">
+      <p>Es la primera vez que entras a la <b>Semana ${w}</b>. Según el cálculo automático, el lunes de esta semana es <b>${fmtDate(d.A)}</b>. ¿Es correcto?</p>
+      <div class="confirm-actions">
+        <button class="primary" id="confirmYes">Sí, es correcta</button>
+        <button id="confirmEdit">Corregir fecha</button>
+      </div>
+      <div class="confirm-edit-row" id="confirmEditRow" style="display:none;">
+        <input type="date" id="confirmDateInput" value="${d.A}">
+        <button id="confirmDateSave" style="border:1px solid var(--ink);background:none;padding:0 12px;border-radius:2px;">Guardar</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('confirmYes').addEventListener('click', ()=>{
+    state.visitedWeeks.push(w);
+    saveState();
+    renderWeekConfirm();
+  });
+  document.getElementById('confirmEdit').addEventListener('click', ()=>{
+    document.getElementById('confirmEditRow').style.display = 'flex';
+  });
+  document.getElementById('confirmDateSave').addEventListener('click', ()=>{
+    const picked = document.getElementById('confirmDateInput').value;
+    if(!picked){ showToast('Elige una fecha'); return; }
+    const correctMonday = mondayOf(new Date(picked + 'T00:00:00'));
+    state.anchorMonday = addDaysISO(correctMonday, -(w - 1) * 7);
+    state.visitedWeeks.push(w);
+    saveState();
+    render();
+    showToast('Fechas ajustadas a partir de esta semana');
+  });
+}
+
+function renderAnchorInfo(){
+  document.getElementById('anchorInfo').textContent =
+    `Ahora mismo, la Semana 1 empieza el lunes ${fmtDate(state.anchorMonday)}.`;
+  document.getElementById('anchorDate').value = state.anchorMonday;
+}
+
+function renderPauses(){
+  const el = document.getElementById('pauseList');
+  if(!state.pauses.length){ el.innerHTML = ''; return; }
+  el.innerHTML = state.pauses.map((p, idx)=>`
+    <div class="pause-entry">
+      <span>${fmtDate(p.start)} – ${fmtDate(p.end)}${p.note ? ' · ' + p.note : ''}</span>
+      <button class="me-del" data-pidx="${idx}">✕</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.me-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.pauses.splice(parseInt(btn.dataset.pidx), 1);
+      saveState();
+      renderPauses();
+      renderHistorial();
+    });
+  });
+}
+
+function renderDayDates(){
+  const d = weekDates(state.currentWeek);
+  document.getElementById('subA').textContent = fmtDate(d.A);
+  document.getElementById('subB').textContent = fmtDate(d.B);
+  document.getElementById('subC').textContent = fmtDate(d.C);
+}
+
+function isDayFullyDone(week, day){
+  return EXERCISES[day].every(ex => state.logs[`W${week}_${day}_${ex.id}`] && state.logs[`W${week}_${day}_${ex.id}`].done);
+}
+
+function weekDetailLine(week, day){
+  const parts = [];
+  EXERCISES[day].forEach(ex=>{
+    const log = state.logs[`W${week}_${day}_${ex.id}`];
+    if(log && log.done){
+      parts.push(`${ex.name} ${log.weight}${ex.isTime ? 'seg' : 'kg'}`);
+    }
+  });
+  return parts.join(' · ');
+}
+
+function runDetailLine(week){
+  const log = state.runProgress[`W${week}_run`];
+  if(!log || !log.done) return '';
+  const lvl = RUN_PLAN_BASE[Math.min(log.levelAtLog ?? 0, RUN_PLAN_BASE.length - 1)];
+  return `${lvl.run} min trote / ${lvl.walk} min caminata x ${lvl.rounds} · sensación: ${feelLabel(log.feel)}`;
+}
+
+function maxLoggedWeek(){
+  let max = 0;
+  Object.keys(state.logs).forEach(k=>{
+    if(state.logs[k] && state.logs[k].done){
+      const w = parseInt(k.slice(1, k.indexOf('_')), 10);
+      if(w > max) max = w;
+    }
+  });
+  Object.keys(state.runProgress).forEach(k=>{
+    if(state.runProgress[k] && state.runProgress[k].done){
+      const w = parseInt(k.slice(1, k.indexOf('_')), 10);
+      if(w > max) max = w;
+    }
+  });
+  return max;
+}
+
+function renderHistorial(){
+  const today = todayISO();
+  let scheduled = 0, completed = 0, missed = 0;
+  const rows = [];
+  const upToWeek = Math.max(1, currentCalendarWeekNum(), maxLoggedWeek());
+
+  for(let w = 1; w <= upToWeek; w++){
+    const d = weekDates(w);
+    const items = [
+      { label: 'Lunes — Full body A', date: d.A, done: isDayFullyDone(w, 'A'), detail: weekDetailLine(w, 'A') },
+      { label: 'Miércoles — Full body B', date: d.B, done: isDayFullyDone(w, 'B'), detail: weekDetailLine(w, 'B') },
+      { label: 'Viernes — Correr', date: d.C, done: !!(state.runProgress[`W${w}_run`] && state.runProgress[`W${w}_run`].done), detail: runDetailLine(w) },
+    ];
+    let weekHtml = `<div class="week-group"><p class="wk-label">Semana ${w} (desde lunes ${fmtDate(d.A)})</p>`;
+    items.forEach(it=>{
+      let status, cls;
+      const paused = isPaused(it.date);
+      if(paused && !it.done){ status = 'Pausa'; cls = 'pausa'; }
+      else if(it.done){ status = 'Completado'; cls = 'completado'; }
+      else if(it.date === today){ status = 'Hoy'; cls = 'hoy'; }
+      else if(it.date < today){ status = 'Perdido'; cls = 'perdido'; }
+      else { status = 'Próximo'; cls = 'proximo'; }
+
+      if(it.date <= today && !paused){
+        scheduled++;
+        if(it.done) completed++; else if(it.date < today) missed++;
+      }
+
+      weekHtml += `
+        <div class="log-row" style="flex-direction:column;align-items:stretch;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="lr-left">
+              <span>${it.label}</span>
+              <span class="lr-date">${fmtDate(it.date)}</span>
+            </div>
+            <span class="lr-status ${cls}">${status}</span>
+          </div>
+          ${it.detail ? `<div style="font-size:0.72rem;color:var(--ink-soft);margin-top:6px;font-family:'SF Mono',monospace;">${it.detail}</div>` : ''}
+        </div>`;
+    });
+    weekHtml += `</div>`;
+    rows.push(weekHtml);
+  }
+
+  const adherence = scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0;
+  document.getElementById('statsSummary').innerHTML = `
+    <div class="stats-grid">
+      <div class="box"><span class="num">${completed}</span><span class="lbl">completadas</span></div>
+      <div class="box"><span class="num">${missed}</span><span class="lbl">perdidas</span></div>
+      <div class="box"><span class="num">${adherence}%</span><span class="lbl">constancia</span></div>
+    </div>
+  `;
+
+  document.getElementById('historialList').innerHTML = rows.reverse().join('');
+}
+
+function renderMeasurements(){
+  const list = document.getElementById('measureList');
+  if(!state.measurements.length){
+    list.innerHTML = `<p class="detail" style="color:var(--ink-soft);font-size:0.78rem;">Aún no tienes registros.</p>`;
+    return;
+  }
+  const sorted = [...state.measurements].sort((a,b)=> b.date.localeCompare(a.date));
+  list.innerHTML = sorted.map((m, idx)=>{
+    const origIdx = state.measurements.indexOf(m);
+    const parts = [];
+    if(m.waist) parts.push(`Cintura ${m.waist}cm`);
+    if(m.arm) parts.push(`Brazo ${m.arm}cm`);
+    if(m.weight) parts.push(`${m.weight}kg`);
+    return `
+      <div class="measure-entry">
+        ${m.photo ? `<img src="${m.photo}" alt="foto">` : ''}
+        <div class="me-info">
+          <div class="me-date">${fmtDate(m.date)}</div>
+          <div>${parts.join(' · ') || '—'}</div>
+          ${m.notes ? `<div style="color:var(--ink-soft);">${m.notes}</div>` : ''}
+        </div>
+        <button class="me-del" data-idx="${origIdx}">✕</button>
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('.me-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.measurements.splice(parseInt(btn.dataset.idx), 1);
+      saveState();
+      renderMeasurements();
+    });
+  });
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bitacora-pablo-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Respaldo descargado');
+}
+
+function renderSummary(){
+  const el = document.getElementById('weekSummary');
+  const w = state.currentWeek;
+
+  const doneA = EXERCISES.A.filter(ex => state.logs[`W${w}_A_${ex.id}`] && state.logs[`W${w}_A_${ex.id}`].done).length;
+  const doneB = EXERCISES.B.filter(ex => state.logs[`W${w}_B_${ex.id}`] && state.logs[`W${w}_B_${ex.id}`].done).length;
+  const runDone = state.runProgress[`W${w}_run`] && state.runProgress[`W${w}_run`].done;
+
+  const dayADone = doneA === EXERCISES.A.length;
+  const dayBDone = doneB === EXERCISES.B.length;
+  const daysCompleted = [dayADone, dayBDone, !!runDone].filter(Boolean).length;
+
+  // compare weights vs previous week to see progression
+  let increased = 0, maintained = 0, totalLogged = 0;
+  ['A','B'].forEach(day=>{
+    EXERCISES[day].forEach(ex=>{
+      const cur = state.logs[`W${w}_${day}_${ex.id}`];
+      const prev = state.logs[`W${w-1}_${day}_${ex.id}`];
+      if(cur && cur.done && prev && prev.done){
+        totalLogged++;
+        if(cur.weight > prev.weight) increased++;
+        else maintained++;
+      }
+    });
+  });
+
+  let headline, detail;
+  if(daysCompleted === 0){
+    headline = 'Semana ' + w + ' — aún sin registrar';
+    detail = 'Marca tus entrenamientos conforme los hagas y aquí verás tu progreso.';
+  } else if(daysCompleted < 3){
+    headline = `${daysCompleted} de 3 sesiones completadas esta semana`;
+    detail = 'Falta poco para cerrar la semana — cada sesión cuenta, aunque no sea perfecta.';
+  } else if(totalLogged === 0){
+    headline = '¡Semana completa! 3 de 3 sesiones';
+    detail = 'Excelente constancia. Cuando tengas una semana previa registrada, aquí verás si estás subiendo peso.';
+  } else if(increased >= totalLogged / 2){
+    headline = '¡Semana completa y subiendo peso!';
+    detail = `Subiste carga en ${increased} de ${totalLogged} ejercicios comparado con la semana pasada. Vas construyendo tono real.`;
+  } else {
+    headline = 'Semana completa — manteniendo cargas';
+    detail = `Mantuviste el peso en la mayoría de ejercicios. Está bien: consolidar también cuenta antes de subir.`;
+  }
+
+  el.innerHTML = `
+    <div class="summary-card">
+      <p class="headline">${headline}</p>
+      <p class="detail">${detail}</p>
+      <div class="summary-dots">
+        <span class="${dayADone?'on':''}"></span>
+        <span class="${dayBDone?'on':''}"></span>
+        <span class="${runDone?'on':''}"></span>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- NAV ----------
+document.querySelectorAll('.day-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.day').forEach(d=>d.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('day-' + btn.dataset.day).classList.add('active');
+  });
+});
+
+document.getElementById('prevWeek').addEventListener('click', ()=>{
+  if(state.currentWeek > 1){
+    state.currentWeek -= 1;
+    render();
+  }
+});
+document.getElementById('nextWeek').addEventListener('click', ()=>{
+  state.currentWeek += 1;
+  saveState();
+  render();
+});
+
+document.getElementById('resetLink').addEventListener('click', async ()=>{
+  if(confirm('¿Seguro que quieres borrar todo tu progreso guardado?')){
+    state = { currentWeek: 1, maxWeekReached: 1, anchorMonday: mondayOf(new Date()), logs: {}, runProgress: {}, runLevel: 0, measurements: [], pauses: [], visitedWeeks: [1] };
+    await saveState();
+    render();
+    showToast('Bitácora reiniciada');
+  }
+});
+
+document.getElementById('anchorSave').addEventListener('click', ()=>{
+  const val = document.getElementById('anchorDate').value;
+  if(!val){
+    showToast('Elige una fecha primero');
+    return;
+  }
+  const newAnchor = mondayOf(new Date(val + 'T00:00:00'));
+  state.anchorMonday = newAnchor;
+  state.currentWeek = 1;
+  state.visitedWeeks = [1];
+  const calWeek = currentCalendarWeekNum();
+  state.maxWeekReached = Math.max(1, calWeek);
+  saveState();
+  render();
+  showToast('Fecha de inicio actualizada — Semana 1 = lunes ' + fmtDate(newAnchor));
+});
+
+document.getElementById('pauseSave').addEventListener('click', ()=>{
+  const start = document.getElementById('pauseStart').value;
+  const end = document.getElementById('pauseEnd').value;
+  const note = document.getElementById('pauseNote').value.trim();
+  if(!start || !end){
+    showToast('Elige fecha de inicio y fin');
+    return;
+  }
+  if(end < start){
+    showToast('La fecha final debe ser después de la inicial');
+    return;
+  }
+  state.pauses.push({ start, end, note });
+  saveState();
+  renderPauses();
+  renderHistorial();
+  document.getElementById('pauseStart').value = '';
+  document.getElementById('pauseEnd').value = '';
+  document.getElementById('pauseNote').value = '';
+  showToast('Pausa agregada');
+});
+
+document.getElementById('exportBtn').addEventListener('click', exportData);
+
+let pendingPhoto = null;
+document.getElementById('mPhoto').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file){ pendingPhoto = null; return; }
+  if(file.size > 2 * 1024 * 1024){
+    showToast('La foto pesa más de 2MB, intenta con otra');
+    e.target.value = '';
+    pendingPhoto = null;
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => { pendingPhoto = reader.result; };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('mSave').addEventListener('click', ()=>{
+  const date = document.getElementById('mDate').value || todayISO();
+  const waist = parseFloat(document.getElementById('mWaist').value) || null;
+  const arm = parseFloat(document.getElementById('mArm').value) || null;
+  const weight = parseFloat(document.getElementById('mWeight').value) || null;
+  const notes = document.getElementById('mNotes').value.trim();
+
+  if(!waist && !arm && !weight && !notes && !pendingPhoto){
+    showToast('Agrega al menos un dato antes de guardar');
+    return;
+  }
+
+  state.measurements.push({ date, waist, arm, weight, notes, photo: pendingPhoto });
+  saveState();
+  renderMeasurements();
+
+  document.getElementById('mDate').value = '';
+  document.getElementById('mWaist').value = '';
+  document.getElementById('mArm').value = '';
+  document.getElementById('mWeight').value = '';
+  document.getElementById('mNotes').value = '';
+  document.getElementById('mPhoto').value = '';
+  pendingPhoto = null;
+  showToast('Registro guardado');
+});
+
+loadState();
+</script>
+</body>
+</html>
