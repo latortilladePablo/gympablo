@@ -912,10 +912,10 @@ function suggestionText(ex, log){
   const unit = ex.isTime ? ' seg' : ' kg';
   if(log.feel === 'facil'){
     const next = ex.isTime ? log.weight + ex.step : Math.round((log.weight + ex.step)*2)/2;
-    return `Fácil — la próxima semana sube a ${next}${unit}.`;
+    return `Fácil — la próxima semana prueba a subir a ${next}${unit}.`;
   }
   if(log.feel === 'dificil'){
-    return `Difícil — mantén ${log.weight}${unit} hasta que se sienta más manejable.`;
+    return `Difícil — mantén ${log.weight}${unit} hasta que se sienta más manejable o bajale un poco.`;
   }
   return `Normal — mantén ${log.weight}${unit} una semana más antes de subir.`;
 }
