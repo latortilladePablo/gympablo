@@ -558,6 +558,7 @@
 <div id="weekConfirm"></div>
 
 <div id="weekSummary"></div>
+<div id="weekRecommendations"></div>
 
 <nav class="days">
   <button class="day-btn active" data-day="A">Lunes<span class="sub" id="subA">Full body A</span></button>
@@ -908,11 +909,15 @@ function feelLabel(f){
 
 function suggestionText(ex, log){
   if(!log.done) return '';
-  if(log.feel === 'dificil'){
-    return `La próxima semana, mantén ${log.weight}${ex.isTime?' seg':' kg'} — consolida antes de subir.`;
+  const unit = ex.isTime ? ' seg' : ' kg';
+  if(log.feel === 'facil'){
+    const next = ex.isTime ? log.weight + ex.step : Math.round((log.weight + ex.step)*2)/2;
+    return `Fácil — la próxima semana sube a ${next}${unit}.`;
   }
-  const next = ex.isTime ? log.weight + ex.step : Math.round((log.weight + ex.step)*2)/2;
-  return `Buen trabajo. La próxima semana prueba con ${next}${ex.isTime?' seg':' kg'}.`;
+  if(log.feel === 'dificil'){
+    return `Difícil — mantén ${log.weight}${unit} hasta que se sienta más manejable.`;
+  }
+  return `Normal — mantén ${log.weight}${unit} una semana más antes de subir.`;
 }
 
 function renderRun(){
@@ -1075,15 +1080,30 @@ function isDayFullyDone(week, day){
   return EXERCISES[day].every(ex => state.logs[`W${week}_${day}_${ex.id}`] && state.logs[`W${week}_${day}_${ex.id}`].done);
 }
 
+function exerciseReport(week, day, ex){
+  const log = state.logs[`W${week}_${day}_${ex.id}`];
+  if(!log || !log.done) return null;
+  const unit = ex.isTime ? 'seg' : 'kg';
+  const prevLog = state.logs[`W${week-1}_${day}_${ex.id}`];
+  let diffText = '';
+  if(prevLog && prevLog.done){
+    const diff = Math.round((log.weight - prevLog.weight) * 100) / 100;
+    if(diff > 0) diffText = ` (antes ${prevLog.weight}${unit}, +${diff}${unit})`;
+    else if(diff < 0) diffText = ` (antes ${prevLog.weight}${unit}, ${diff}${unit})`;
+    else diffText = ` (igual que la semana pasada)`;
+  }
+  return { name: ex.name, weight: log.weight, unit, feel: log.feel, diffText, rec: suggestionText(ex, log) };
+}
+
 function weekDetailLine(week, day){
   const parts = [];
   EXERCISES[day].forEach(ex=>{
-    const log = state.logs[`W${week}_${day}_${ex.id}`];
-    if(log && log.done){
-      parts.push(`${ex.name} ${log.weight}${ex.isTime ? 'seg' : 'kg'}`);
+    const r = exerciseReport(week, day, ex);
+    if(r){
+      parts.push(`<b>${r.name}</b>: ${r.weight}${r.unit}${r.diffText} · ${feelLabel(r.feel)} → ${r.rec}`);
     }
   });
-  return parts.join(' · ');
+  return parts.join('<br>');
 }
 
 function runDetailLine(week){
@@ -1268,6 +1288,39 @@ function renderSummary(){
       </div>
     </div>
   `;
+
+  renderRecommendations(w);
+}
+
+function renderRecommendations(w){
+  const groups = { facil: [], normal: [], dificil: [] };
+  ['A','B'].forEach(day=>{
+    EXERCISES[day].forEach(ex=>{
+      const r = exerciseReport(w, day, ex);
+      if(r) groups[r.feel || 'normal'].push(r);
+    });
+  });
+
+  const total = groups.facil.length + groups.normal.length + groups.dificil.length;
+  const el = document.getElementById('weekRecommendations');
+  if(!el) return;
+  if(total === 0){ el.innerHTML = ''; return; }
+
+  let html = `<div class="summary-card" style="border-left-color:var(--amber);"><p class="headline" style="margin-bottom:8px;">Para la próxima semana</p>`;
+  if(groups.facil.length){
+    html += `<p class="detail" style="margin-bottom:2px;"><b style="color:var(--accent);">🟢 Fácil — sube:</b></p>`;
+    groups.facil.forEach(r=> html += `<p class="detail" style="margin:0 0 4px 10px;">${r.name}: ${r.weight}${r.unit} → ${r.rec.replace(/^Fácil — la próxima semana /,'')}</p>`);
+  }
+  if(groups.normal.length){
+    html += `<p class="detail" style="margin:6px 0 2px;"><b>🟡 Normal — mantén:</b></p>`;
+    groups.normal.forEach(r=> html += `<p class="detail" style="margin:0 0 4px 10px;">${r.name}: se queda en ${r.weight}${r.unit} una semana más.</p>`);
+  }
+  if(groups.dificil.length){
+    html += `<p class="detail" style="margin:6px 0 2px;"><b style="color:var(--danger);">🔴 Difícil — mantén:</b></p>`;
+    groups.dificil.forEach(r=> html += `<p class="detail" style="margin:0 0 4px 10px;">${r.name}: se queda en ${r.weight}${r.unit} hasta que se sienta mejor.</p>`);
+  }
+  html += `</div>`;
+  el.innerHTML = html;
 }
 
 // ---------- NAV ----------
